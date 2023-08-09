@@ -1,0 +1,35 @@
+#include <stdio.h>
+
+int fibonacci(int n) {
+    if (n <= 0) {
+        return -1; // Fibonacci series is not defined for non-positive numbers.
+    } else if (n == 1) {
+        return 0;
+    } else if (n == 2) {
+        return 1;
+    } else {
+        return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+}
+
+void printFibonacciSeries(int n) {
+    printf("Fibonacci series up to %d terms: ", n);
+    for (int i = 1; i <= n; i++) {
+        printf("%d ", fibonacci(i));
+    }
+    printf("\n");
+}
+
+int main() {
+    int numTerms;
+    printf("Enter the number of terms in the Fibonacci series: ");
+    scanf("%d", &numTerms);
+
+    if (numTerms < 1) {
+        printf("Number of terms must be at least 1.\n");
+        return 1;
+    }
+
+    printFibonacciSeries(numTerms);
+    return 0;
+}
