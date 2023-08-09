@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <ctype.h>
+
+#define MAX_SIZE 100
+
+// Stack structure
+struct Stack {
+    int data[MAX_SIZE];
+    int top;
+};
+
+// Function to initialize the stack
+void initializeStack(struct Stack* stack) {
+    stack->top = -1;
+}
+
+// Function to check if the stack is empty
+bool isEmpty(struct Stack* stack) {
+    return (stack->top == -1);
+}
+
+// Function to check if the stack is full
+bool isFull(struct Stack* stack) {
+    return (stack->top == MAX_SIZE - 1);
+}
+
+// Function to push an element onto the stack
+void push(struct Stack* stack, int value) {
+    if (isFull(stack)) {
+        printf("Stack Overflow: Cannot push element %d\n", value);
+    } else {
+        stack->top++;
+        stack->data[stack->top] = value;
+    }
+}
+
+// Function to pop an element from the stack
+int pop(struct Stack* stack) {
+    if (isEmpty(stack)) {
+        printf("Stack Underflow: Cannot pop element from an empty stack\n");
+        return -1; // Return -1 to indicate stack underflow
+    } else {
+        int value = stack->data[stack->top];
+        stack->top--;
+        return value;
+    }
+}
+
+// Function to evaluate a postfix expression
+int evaluatePostfix(char* postfix) {
+    struct Stack stack;
+    initializeStack(&stack);
+
+    for (int i = 0; postfix[i] != '\0'; i++) {
+        if (isdigit(postfix[i])) {
+            push(&stack, postfix[i] - '0'); // Convert character digit to integer
+        } else {
+            int operand2 = pop(&stack);
+            int operand1 = pop(&stack);
+
+            switch (postfix[i]) {
+                case '+':
+                    push(&stack, operand1 + operand2);
+                    break;
+                case '-':
+                    push(&stack, operand1 - operand2);
+                    break;
+                case '*':
+                    push(&stack, operand1 * operand2);
+                    break;
+                case '/':
+                    push(&stack, operand1 / operand2);
+                    break;
+                default:
+                    printf("Invalid operator in the expression.\n");
+                    exit(1);
+            }
+        }
+    }
+
+    int result = pop(&stack);
+    if (!isEmpty(&stack)) {
+        printf("Invalid expression: Stack not empty after evaluation.\n");
+        exit(1);
+    }
+
+    return result;
+}
+
+int main() {
+    char postfix[MAX_SIZE];
+    printf("Enter a postfix expression: ");
+    scanf("%s", postfix);
+
+    int result = evaluatePostfix(postfix);
+    printf("Result of the expression: %d\n", result);
+
+    return 0;
+}
