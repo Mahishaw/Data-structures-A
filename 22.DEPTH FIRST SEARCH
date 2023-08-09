@@ -1,0 +1,48 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
+#define MAX_VERTICES 100
+
+// Function to perform DFS on the graph
+void DFS(int graph[MAX_VERTICES][MAX_VERTICES], bool visited[MAX_VERTICES], int vertices, int currentVertex) {
+    printf("%d ", currentVertex);
+    visited[currentVertex] = true;
+
+    for (int i = 0; i < vertices; i++) {
+        if (graph[currentVertex][i] == 1 && !visited[i]) {
+            DFS(graph, visited, vertices, i);
+        }
+    }
+}
+
+int main() {
+    int vertices, edges;
+    printf("Enter the number of vertices in the graph: ");
+    scanf("%d", &vertices);
+
+    int graph[MAX_VERTICES][MAX_VERTICES] = {0};
+
+    printf("Enter the number of edges in the graph: ");
+    scanf("%d", &edges);
+
+    printf("Enter %d edges (format: source destination):\n", edges);
+    for (int i = 0; i < edges; i++) {
+        int source, destination;
+        scanf("%d %d", &source, &destination);
+        graph[source][destination] = 1;
+        graph[destination][source] = 1; // For undirected graph
+    }
+
+    int startVertex;
+    printf("Enter the starting vertex for DFS: ");
+    scanf("%d", &startVertex);
+
+    bool visited[MAX_VERTICES] = {false};
+
+    printf("DFS Traversal: ");
+    DFS(graph, visited, vertices, startVertex);
+    printf("\n");
+
+    return 0;
+}
