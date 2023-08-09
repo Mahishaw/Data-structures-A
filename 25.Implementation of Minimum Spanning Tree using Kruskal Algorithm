@@ -1,0 +1,99 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
+#define MAX_VERTICES 100
+
+// Structure to represent an edge in the graph
+struct Edge {
+    int source, destination, weight;
+};
+
+// Structure to represent the graph
+struct Graph {
+    int vertices, edges;
+    struct Edge* edge;
+};
+
+// Function to create a graph with 'V' vertices and 'E' edges
+struct Graph* createGraph(int vertices, int edges) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->vertices = vertices;
+    graph->edges = edges;
+    graph->edge = (struct Edge*)malloc(edges * sizeof(struct Edge));
+    return graph;
+}
+
+// Function to compare edges based on their weights (used for qsort)
+int compareEdges(const void* a, const void* b) {
+    return ((struct Edge*)a)->weight - ((struct Edge*)b)->weight;
+}
+
+// Function to find the parent of a vertex in a disjoint-set
+int findParent(int parent[], int vertex) {
+    if (parent[vertex] == -1) {
+        return vertex;
+    }
+    return findParent(parent, parent[vertex]);
+}
+
+// Function to perform union of two disjoint-sets
+void unionSets(int parent[], int x, int y) {
+    int xParent = findParent(parent, x);
+    int yParent = findParent(parent, y);
+    parent[xParent] = yParent;
+}
+
+// Function to implement Kruskal's algorithm to find the MST of a graph
+void kruskalMST(struct Graph* graph) {
+    int vertices = graph->vertices;
+    struct Edge result[vertices];
+    int parent[vertices];
+    int e = 0; // Index variable for result[]
+
+    // Initialize all subsets as single elements
+    for (int i = 0; i < vertices; i++) {
+        parent[i] = -1;
+    }
+
+    // Sort all the edges in non-decreasing order of their weights
+    qsort(graph->edge, graph->edges, sizeof(struct Edge), compareEdges);
+
+    // Iterate through all sorted edges in the graph
+    for (int i = 0; i < graph->edges; i++) {
+        int x = findParent(parent, graph->edge[i].source);
+        int y = findParent(parent, graph->edge[i].destination);
+
+        // Add the edge to the result if it doesn't form a cycle
+        if (x != y) {
+            result[e++] = graph->edge[i];
+            unionSets(parent, x, y);
+        }
+    }
+
+    // Print the MST
+    printf("Edge\tWeight\n");
+    for (int i = 0; i < e; i++) {
+        printf("%d - %d\t%d\n", result[i].source, result[i].destination, result[i].weight);
+    }
+}
+
+int main() {
+    int vertices, edges;
+    printf("Enter the number of vertices in the graph: ");
+    scanf("%d", &vertices);
+
+    printf("Enter the number of edges in the graph: ");
+    scanf("%d", &edges);
+
+    struct Graph* graph = createGraph(vertices, edges);
+
+    printf("Enter %d edges and their weights (format: source destination weight):\n", edges);
+    for (int i = 0; i < edges; i++) {
+        scanf("%d %d %d", &graph->edge[i].source, &graph->edge[i].destination, &graph->edge[i].weight);
+    }
+
+    kruskalMST(graph);
+
+    return 0;
+}
