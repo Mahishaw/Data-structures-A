@@ -1,0 +1,278 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// AVL Tree Node
+struct AVLNode {
+    int key;
+    struct AVLNode* left;
+    struct AVLNode* right;
+    int height;
+};
+
+// Function to get the height of a node
+int getHeight(struct AVLNode* node) {
+    if (node == NULL) {
+        return 0;
+    }
+    return node->height;
+}
+
+// Function to calculate the balance factor of a node
+int getBalanceFactor(struct AVLNode* node) {
+    if (node == NULL) {
+        return 0;
+    }
+    return getHeight(node->left) - getHeight(node->right);
+}
+
+// Function to update the height of a node
+void updateHeight(struct AVLNode* node) {
+    if (node == NULL) {
+        return;
+    }
+    int leftHeight = getHeight(node->left);
+    int rightHeight = getHeight(node->right);
+    node->height = (leftHeight > rightHeight ? leftHeight : rightHeight) + 1;
+}
+
+// Function to rotate the subtree rooted with 'y' to the right
+struct AVLNode* rightRotate(struct AVLNode* y) {
+    struct AVLNode* x = y->left;
+    struct AVLNode* T2 = x->right;
+
+    // Perform rotation
+    x->right = y;
+    y->left = T2;
+
+    // Update heights
+    updateHeight(y);
+    updateHeight(x);
+
+    return x;
+}
+
+// Function to rotate the subtree rooted with 'x' to the left
+struct AVLNode* leftRotate(struct AVLNode* x) {
+    struct AVLNode* y = x->right;
+    struct AVLNode* T2 = y->left;
+
+    // Perform rotation
+    y->left = x;
+    x->right = T2;
+
+    // Update heights
+    updateHeight(x);
+    updateHeight(y);
+
+    return y;
+}
+
+// Function to create a new AVL node
+struct AVLNode* createNode(int key) {
+    struct AVLNode* newNode = (struct AVLNode*)malloc(sizeof(struct AVLNode));
+    if (newNode == NULL) {
+        printf("Memory allocation error.\n");
+        exit(1);
+    }
+    newNode->key = key;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    newNode->height = 1;
+    return newNode;
+}
+
+// Function to insert a key into the AVL tree
+struct AVLNode* insert(struct AVLNode* root, int key) {
+    if (root == NULL) {
+        return createNode(key);
+    }
+
+    if (key < root->key) {
+        root->left = insert(root->left, key);
+    } else if (key > root->key) {
+        root->right = insert(root->right, key);
+    } else {
+        return root; // Duplicate keys not allowed in AVL trees
+    }
+
+    updateHeight(root);
+
+    int balance = getBalanceFactor(root);
+
+    // Left-Left case
+    if (balance > 1 && key < root->left->key) {
+        return rightRotate(root);
+    }
+
+    // Right-Right case
+    if (balance < -1 && key > root->right->key) {
+        return leftRotate(root);
+    }
+
+    // Left-Right case
+    if (balance > 1 && key > root->left->key) {
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+
+    // Right-Left case
+    if (balance < -1 && key < root->right->key) {
+        root->right = rightRotate(root->right);
+        return leftRotate(root);
+    }
+
+    return root;
+}
+
+// Function to find the node with the minimum key value in a given AVL tree
+struct AVLNode* findMinNode(struct AVLNode* node) {
+    while (node->left != NULL) {
+        node = node->left;
+    }
+    return node;
+}
+
+// Function to delete a key from the AVL tree
+struct AVLNode* delete(struct AVLNode* root, int key) {
+    if (root == NULL) {
+        return root;
+    }
+
+    if (key < root->key) {
+        root->left = delete(root->left, key);
+    } else if (key > root->key) {
+        root->right = delete(root->right, key);
+    } else {
+        // Node with only one child or no child
+        if (root->left == NULL || root->right == NULL) {
+            struct AVLNode* temp = root->left ? root->left : root->right;
+            if (temp == NULL) {
+                temp = root;
+                root = NULL;
+            } else {
+                *root = *temp;
+            }
+            free(temp);
+        } else {
+            // Node with two children: Get the inorder successor (smallest in the right subtree)
+            struct AVLNode* temp = findMinNode(root->right);
+            root->key = temp->key;
+            root->right = delete(root->right, temp->key);
+        }
+    }
+
+    if (root == NULL) {
+        return root;
+    }
+
+    updateHeight(root);
+
+    int balance = getBalanceFactor(root);
+
+    // Left-Left case
+    if (balance > 1 && getBalanceFactor(root->left) >= 0) {
+        return rightRotate(root);
+    }
+
+    // Right-Right case
+    if (balance < -1 && getBalanceFactor(root->right) <= 0) {
+        return leftRotate(root);
+    }
+
+    // Left-Right case
+    if (balance > 1 && getBalanceFactor(root->left) < 0) {
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+
+    // Right-Left case
+    if (balance < -1 && getBalanceFactor(root->right) > 0) {
+        root->right = rightRotate(root->right);
+        return leftRotate(root);
+    }
+
+    return root;
+}
+
+// Function to search for a key element in the AVL tree
+struct AVLNode* search(struct AVLNode* root, int key) {
+    if (root == NULL || root->key == key) {
+        return root;
+    }
+
+    if (key < root->key) {
+        return search(root->left, key);
+    } else {
+        return search(root->right, key);
+    }
+}
+
+// Function to free memory occupied by the AVL tree
+void freeAVLTree(struct AVLNode* root) {
+    if (root != NULL) {
+        freeAVLTree(root->left);
+        freeAVLTree(root->right);
+        free(root);
+    }
+}
+
+// Function to perform inorder traversal of the AVL tree
+void inorderTraversal(struct AVLNode* root) {
+    if (root != NULL) {
+        inorderTraversal(root->left);
+        printf("%d ", root->key);
+        inorderTraversal(root->right);
+    }
+}
+
+int main() {
+    struct AVLNode* root = NULL;
+    int choice, key;
+
+    while (1) {
+        printf("\nAVL Tree Operations:\n");
+        printf("1. Insert Key\n");
+        printf("2. Delete Key\n");
+        printf("3. Search Key\n");
+        printf("4. Display Inorder Traversal\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter the key to insert: ");
+                scanf("%d", &key);
+                root = insert(root, key);
+                break;
+            case 2:
+                printf("Enter the key to delete: ");
+                scanf("%d", &key);
+                root = delete(root, key);
+                break;
+            case 3:
+                printf("Enter the key to search: ");
+                scanf("%d", &key);
+                struct AVLNode* result = search(root, key);
+                if (result != NULL) {
+                    printf("Key %d found in the AVL tree.\n", key);
+                } else {
+                    printf("Key %d not found in the AVL tree.\n", key);
+                }
+                break;
+            case 4:
+                printf("Inorder Traversal: ");
+                inorderTraversal(root);
+                printf("\n");
+                break;
+            case 5:
+                freeAVLTree(root);
+                printf("Exiting the program.\n");
+                return 0;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    }
+
+    return 0;
+}
