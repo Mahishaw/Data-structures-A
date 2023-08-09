@@ -1,0 +1,79 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define SIZE 10
+
+// Hash table size
+#define TABLE_SIZE 10
+
+// Hash table structure
+struct HashTable {
+    int key[TABLE_SIZE];
+    int value[TABLE_SIZE];
+};
+
+// Function to initialize the hash table
+void initializeHashTable(struct HashTable* hashTable) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        hashTable->key[i] = -1; // -1 indicates an empty slot
+    }
+}
+
+// Function to calculate the hash index
+int hash(int key) {
+    return key % TABLE_SIZE;
+}
+
+// Function to insert a key-value pair into the hash table
+void insert(struct HashTable* hashTable, int key, int value) {
+    int index = hash(key);
+
+    while (hashTable->key[index] != -1) {
+        index = (index + 1) % TABLE_SIZE; // Linear Probing
+    }
+
+    hashTable->key[index] = key;
+    hashTable->value[index] = value;
+}
+
+// Function to search for a key in the hash table and return its value
+int search(struct HashTable* hashTable, int key) {
+    int index = hash(key);
+
+    while (hashTable->key[index] != key) {
+        index = (index + 1) % TABLE_SIZE; // Linear Probing
+        if (hashTable->key[index] == -1 || index == hash(key)) {
+            return -1; // Key not found
+        }
+    }
+
+    return hashTable->value[index];
+}
+
+int main() {
+    struct HashTable hashTable;
+    initializeHashTable(&hashTable);
+
+    insert(&hashTable, 2, 20);
+    insert(&hashTable, 12, 120);
+    insert(&hashTable, 22, 220);
+    insert(&hashTable, 32, 320);
+
+    int keyToSearch = 12;
+    int valueFound = search(&hashTable, keyToSearch);
+    if (valueFound != -1) {
+        printf("Value for key %d: %d\n", keyToSearch, valueFound);
+    } else {
+        printf("Key %d not found.\n", keyToSearch);
+    }
+
+    keyToSearch = 15;
+    valueFound = search(&hashTable, keyToSearch);
+    if (valueFound != -1) {
+        printf("Value for key %d: %d\n", keyToSearch, valueFound);
+    } else {
+        printf("Key %d not found.\n", keyToSearch);
+    }
+
+    return 0;
+}
